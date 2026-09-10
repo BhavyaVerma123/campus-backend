@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id             String             @id @default(uuid()) @db.Uuid
+  registrationNo String             @unique
+  name           String
+  email          String             @unique
+  department     String?
+  year           Int?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  courses        StudentCourse[]
+  savedEvents    StudentSavedEvent[]
+  odMilestones   ODMilestone[]
+
+  @@index([department])
+}
+
+model StudentCourse {
+  id         String   @id @default(uuid()) @db.Uuid
+  studentId  String   @db.Uuid
+  courseCode String
+  courseName String
+  semester   Int
+  credits    Int?
+  createdAt  DateTime @default(now())
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseCode, semester])
+  @@index([studentId])
+}
+
+model Club {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events      Event[]
+}
+
+model Event {
+  id          String             @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  location    String?
+  flyerUrls   String[]
+  clubId      String?            @db.Uuid
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  club        Club?              @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  savedBy     StudentSavedEvent[]
+  milestones  ODMilestone[]
+
+  @@index([startsAt])
+  @@index([clubId])
+}
+
+model StudentSavedEvent {
+  studentId String   @db.Uuid
+  eventId   String   @db.Uuid
+  savedAt   DateTime @default(now())
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, eventId])
+  @@index([eventId])
+}
+
+model ODMilestone {
+  id          String   @id @default(uuid()) @db.Uuid
+  studentId   String   @db.Uuid
+  eventId     String?  @db.Uuid
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  event       Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, completed])
+  @@index([eventId])
+}
