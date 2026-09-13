@@ -7,15 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Student {
-  id             String             @id @default(uuid()) @db.Uuid
-  registrationNo String             @unique
+enum UserRole {
+  STUDENT
+  HOST
+  ADMIN
+}
+
+model User {
+  id             String   @id @default(uuid()) @db.Uuid
+  googleId       String   @unique
+  email          String   @unique
   name           String
-  email          String             @unique
+  profilePicture String?
+  role           UserRole @default(STUDENT)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Student {
+  id             String              @id @default(uuid()) @db.Uuid
+  registrationNo String              @unique
+  name           String
+  email          String              @unique
   department     String?
   year           Int?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
   courses        StudentCourse[]
   savedEvents    StudentSavedEvent[]
   odMilestones   ODMilestone[]
@@ -47,17 +64,17 @@ model Club {
 }
 
 model Event {
-  id          String             @id @default(uuid()) @db.Uuid
+  id          String              @id @default(uuid()) @db.Uuid
   title       String
   description String?
   startsAt    DateTime
   endsAt      DateTime?
   location    String?
   flyerUrls   String[]
-  clubId      String?            @db.Uuid
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  club        Club?              @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  clubId      String?             @db.Uuid
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  club        Club?               @relation(fields: [clubId], references: [id], onDelete: SetNull)
   savedBy     StudentSavedEvent[]
   milestones  ODMilestone[]
 
@@ -77,18 +94,18 @@ model StudentSavedEvent {
 }
 
 model ODMilestone {
-  id          String   @id @default(uuid()) @db.Uuid
-  studentId   String   @db.Uuid
-  eventId     String?  @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
+  studentId   String    @db.Uuid
+  eventId     String?   @db.Uuid
   title       String
   description String?
   dueDate     DateTime?
-  completed   Boolean  @default(false)
+  completed   Boolean   @default(false)
   completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  event       Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  event       Event?    @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   @@index([studentId, completed])
   @@index([eventId])
