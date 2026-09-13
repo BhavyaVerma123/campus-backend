@@ -81,7 +81,8 @@ export const authenticateGoogleCallback = async (code: string, state: string) =>
   let tokens;
   try {
     ({ tokens } = await client.getToken(code));
-  } catch {
+  } catch (error) {
+    console.error('Google token exchange failed:', error);
     throw new HttpError(400, 'Google authentication failed');
   }
   if (!tokens.id_token) {
